@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String             @id @default(uuid())
+  email            String             @unique
+  passwordHash     String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  carbonFootprints CarbonFootprint[]
+  recommendations  AIRecommendation[]
+
+  @@index([email])
+}
+
+model CarbonFootprint {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Inputs (stored as JSON for flexibility, but strongly typed in app)
+  inputData        String
+
+  // Calculated Outputs
+  totalCo2eKg      Float
+  travelCo2e       Float
+  electricityCo2e  Float
+  foodCo2e         Float
+  shoppingCo2e     Float
+  
+  // Caching signature to prevent recalculation of identical inputs
+  inputSignature   String
+
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([inputSignature])
+}
+
+model AIRecommendation {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // The footprint signature this recommendation was generated for
+  footprintSignature String
+
+  suggestionText   String
+  impactCategory   String // e.g., 'TRAVEL', 'FOOD'
+
+  createdAt        DateTime @default(now())
+
+  @@index([userId, footprintSignature])
+}
