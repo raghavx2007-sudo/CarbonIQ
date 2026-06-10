@@ -65,15 +65,16 @@ export default function CarbonPage() {
       }
 
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) setError(err.message);
+      else setError(String(err));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-sm border border-slate-200">
+    <main className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-sm border border-slate-200">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Log Your Footprint</h1>
       
       {error && <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md" role="alert">{error}</div>}
@@ -155,6 +156,6 @@ export default function CarbonPage() {
           {loading ? "Calculating..." : "Calculate & Save Footprint"}
         </button>
       </form>
-    </div>
+    </main>
   );
 }

@@ -31,15 +31,16 @@ export default function Login() {
       }
 
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) setError(err.message);
+      else setError(String(err));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-16 bg-white p-8 rounded-lg shadow-sm border border-slate-200">
+    <main className="max-w-md mx-auto mt-16 bg-white p-8 rounded-lg shadow-sm border border-slate-200">
       <h1 className="text-2xl font-bold text-slate-900 mb-6 text-center">Sign In</h1>
       
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-md" role="alert">{error}</div>}
@@ -84,6 +85,6 @@ export default function Login() {
       <div className="mt-4 text-center text-sm text-slate-600">
         Don't have an account? <a href="/auth/register" className="text-emerald-600 hover:underline">Create one</a>
       </div>
-    </div>
+    </main>
   );
 }

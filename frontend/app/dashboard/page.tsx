@@ -26,7 +26,7 @@ export default async function Dashboard() {
   const footprint = await getUserFootprint();
 
   return (
-    <div className="space-y-6">
+    <main className="space-y-6">
       <h1 className="text-3xl font-bold text-slate-900">Your Dashboard</h1>
       
       {!footprint ? (
@@ -67,6 +67,6 @@ export default async function Dashboard() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

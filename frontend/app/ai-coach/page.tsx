@@ -35,8 +35,9 @@ export default function AICoachPage() {
 
         const aiData = await aiRes.json();
         setRecommendation(aiData.recommendation);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        if (err instanceof Error) setError(err.message);
+        else setError(String(err));
       } finally {
         setLoading(false);
       }
@@ -46,7 +47,7 @@ export default function AICoachPage() {
   }, []);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <main className="max-w-3xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-slate-900">AI Carbon Coach</h1>
       
       {loading && (
@@ -73,6 +74,6 @@ export default function AICoachPage() {
           </p>
         </div>
       )}
-    </div>
+    </main>
   );
 }
