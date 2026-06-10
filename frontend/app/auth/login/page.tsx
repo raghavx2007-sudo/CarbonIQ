@@ -83,7 +83,7 @@ export default function Login() {
         </button>
       </form>
       <div className="mt-4 text-center text-sm text-slate-600">
-        Don't have an account? <a href="/auth/register" className="text-emerald-600 hover:underline">Create one</a>
+        Don&apos;t have an account? <a href="/auth/register" className="text-emerald-600 hover:underline">Create one</a>
       </div>
     </main>
   );

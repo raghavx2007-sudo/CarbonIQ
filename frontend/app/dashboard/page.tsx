@@ -31,7 +31,7 @@ export default async function Dashboard() {
       
       {!footprint ? (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-          <p className="text-slate-600 mb-4">You haven't logged any footprints yet.</p>
+          <p className="text-slate-600 mb-4">You haven&apos;t logged any footprints yet.</p>
           <a href="/carbon" className="text-emerald-600 font-medium hover:underline">Log your first footprint &rarr;</a>
         </div>
       ) : (
