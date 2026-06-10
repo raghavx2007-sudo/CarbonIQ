@@ -53,11 +53,10 @@ export default function CarbonPage() {
         },
       };
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/carbon`, {
+      const res = await fetch(`/api/carbon`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-        credentials: "include",
       });
 
       if (!res.ok) {

@@ -11,7 +11,7 @@ export default function AICoachPage() {
     async function fetchRecommendation() {
       try {
         // First get the latest footprint ID
-        const footRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/carbon`, { credentials: "include" });
+        const footRes = await fetch(`/api/carbon`);
         if (!footRes.ok) throw new Error("Failed to fetch footprints");
         const footData = await footRes.json();
         const latest = footData.history?.[footData.history.length - 1];
@@ -22,11 +22,10 @@ export default function AICoachPage() {
           return;
         }
 
-        const aiRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/ai-coach`, {
+        const aiRes = await fetch(`/api/ai-coach`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ footprintId: latest.id }),
-          credentials: "include",
         });
 
         if (!aiRes.ok) {
