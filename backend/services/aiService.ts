@@ -11,7 +11,7 @@ export class AIService {
    * Simulates calling an external AI API (e.g., OpenAI/Gemini)
    * In a real application, this would use the respective SDK.
    */
-  private static async fetchFromAI(footprintData: any): Promise<AIResponse> {
+  private static async fetchFromAI(footprintData: { travelCo2e: number, electricityCo2e: number, foodCo2e: number, shoppingCo2e: number }): Promise<AIResponse> {
     // Simulate network latency
     await new Promise((resolve) => setTimeout(resolve, 800));
 
@@ -43,7 +43,12 @@ export class AIService {
   }
 
   /**
-   * Gets personalized recommendations with strict caching and rate limiting
+   * Retrieves personalized AI recommendations based on a user's footprint.
+   * Employs strict caching to minimize external API costs and includes per-user rate limiting.
+   * @param {string} userId - The ID of the user requesting coaching.
+   * @param {string} footprintId - The ID of the specific footprint to analyze.
+   * @returns {Promise<any>} The AI recommendation record.
+   * @throws {Error} If rate limit exceeded, footprint not found, or unauthorized.
    */
   static async getRecommendations(userId: string, footprintId: string) {
     // 1. Rate Limiting Check (max 5 AI calls per minute per user)

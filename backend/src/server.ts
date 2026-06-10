@@ -1,6 +1,13 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+
+export interface AuthRequest extends Request {
+  userId?: string;
+}
 import cors from 'cors';
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsDoc from 'swagger-jsdoc';
 import { prisma } from '../lib/db';
 import { hashPassword, signToken, verifyPassword, verifyToken } from '../lib/security/auth';
 import { registerSchema, loginSchema } from '../lib/validators/auth';
@@ -13,7 +20,24 @@ import { z } from 'zod';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'CarbonIQ API',
+      version: '1.0.0',
+      description: 'API Documentation for CarbonIQ Platform',
+    },
+    servers: [{ url: '/api' }],
+  },
+  apis: ['./src/server.ts', './src/server.js'], // Use decorators in server file
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 // Middleware
+app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
@@ -61,7 +85,7 @@ apiRouter.post('/auth/register', async (req, res) => {
     });
 
     res.status(201).json({ success: true, user: { id: user.id, email: user.email } });
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
     }
@@ -102,7 +126,7 @@ apiRouter.post('/auth/login', async (req, res) => {
     });
 
     res.status(200).json({ success: true, user: { id: user.id, email: user.email } });
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
     }
@@ -111,7 +135,7 @@ apiRouter.post('/auth/login', async (req, res) => {
 });
 
 // Middleware for protected routes
-const requireAuth = async (req: any, res: any, next: any) => {
+const requireAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const token = req.cookies.auth_token;
   if (!token) return res.status(401).json({ error: "Unauthorized" });
 
@@ -124,7 +148,7 @@ const requireAuth = async (req: any, res: any, next: any) => {
   }
 };
 
-apiRouter.post('/carbon', requireAuth, async (req: any, res: any) => {
+apiRouter.post('/carbon', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const ip = req.ip || "unknown";
     const rl = rateLimit(`carbon_post_${ip}`, 20, 60000); 
@@ -133,10 +157,10 @@ apiRouter.post('/carbon', requireAuth, async (req: any, res: any) => {
     }
 
     const validatedData = carbonInputSchema.parse(req.body);
-    const footprint = await CarbonService.submitFootprint(req.userId, validatedData);
+    const footprint = await CarbonService.submitFootprint(req.userId as string, validatedData);
 
     res.status(201).json({ success: true, footprint });
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
     }
@@ -144,9 +168,9 @@ apiRouter.post('/carbon', requireAuth, async (req: any, res: any) => {
   }
 });
 
-apiRouter.get('/carbon', requireAuth, async (req: any, res: any) => {
+apiRouter.get('/carbon', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const history = await CarbonService.getUserHistory(req.userId);
+    const history = await CarbonService.getUserHistory(req.userId as string);
     res.status(200).json({ success: true, history });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
@@ -155,25 +179,32 @@ apiRouter.get('/carbon', requireAuth, async (req: any, res: any) => {
 
 const coachRequestSchema = z.object({ footprintId: z.string().uuid() });
 
-apiRouter.post('/ai-coach', requireAuth, async (req: any, res: any) => {
+apiRouter.post('/ai-coach', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const validatedData = coachRequestSchema.parse(req.body);
-    const recommendation = await AIService.getRecommendations(req.userId, validatedData.footprintId);
+    const recommendation = await AIService.getRecommendations(req.userId as string, validatedData.footprintId);
 
     res.status(200).json({ success: true, recommendation });
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
     }
-    if (error.message && error.message.includes("Rate limit")) {
-      return res.status(429).json({ error: error.message });
+    if (error instanceof Error) {
+      if (error.message && error.message.includes("Rate limit")) {
+        return res.status(429).json({ error: error.message });
+      }
+      return res.status(500).json({ error: error.message || "Internal Server Error" });
     }
-    res.status(500).json({ error: error.message || "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 app.use('/api', apiRouter);
 
-app.listen(PORT, () => {
-  console.log(`Backend server running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Backend server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;

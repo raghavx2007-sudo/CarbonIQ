@@ -5,7 +5,9 @@ import * as crypto from "crypto";
 
 export class CarbonService {
   /**
-   * Generates a deterministic signature for the footprint input
+   * Generates a deterministic signature for the footprint input to enable caching.
+   * @param {ValidatedCarbonInput} input - The validated user inputs for carbon calculation.
+   * @returns {string} SHA-256 hash signature.
    */
   private static generateSignature(input: ValidatedCarbonInput): string {
     const stringified = JSON.stringify(input, Object.keys(input).sort());
@@ -13,7 +15,11 @@ export class CarbonService {
   }
 
   /**
-   * Submits a new carbon footprint or returns a cached one if inputs are identical
+   * Submits a new carbon footprint or returns a cached one if inputs are identical.
+   * Prevents redundant database inserts and calculations.
+   * @param {string} userId - The ID of the user submitting the footprint.
+   * @param {ValidatedCarbonInput} input - The validated user inputs.
+   * @returns {Promise<any>} The saved or cached footprint record.
    */
   static async submitFootprint(userId: string, input: ValidatedCarbonInput) {
     const signature = this.generateSignature(input);
@@ -51,7 +57,9 @@ export class CarbonService {
   }
 
   /**
-   * Fetches the user's history of footprints
+   * Fetches the user's history of footprints, ordered by creation date ascending.
+   * @param {string} userId - The ID of the user.
+   * @returns {Promise<any[]>} An array of historical footprint records.
    */
   static async getUserHistory(userId: string) {
     return prisma.carbonFootprint.findMany({
@@ -61,7 +69,9 @@ export class CarbonService {
   }
 
   /**
-   * Fetches the latest footprint
+   * Fetches the user's most recent footprint.
+   * @param {string} userId - The ID of the user.
+   * @returns {Promise<any|null>} The latest footprint record or null if none exists.
    */
   static async getLatestFootprint(userId: string) {
     return prisma.carbonFootprint.findFirst({

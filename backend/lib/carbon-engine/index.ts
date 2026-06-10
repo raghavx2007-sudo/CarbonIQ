@@ -20,6 +20,12 @@ const FACTORS = {
   ELECTRONICS: 50, // Per item avg
 };
 
+/**
+ * Calculates travel-related carbon emissions based on miles driven, flights taken, and public transit.
+ * @param {TravelInput} input - User's travel habits.
+ * @returns {number} Total travel CO2e in kg.
+ * @throws {Error} If input values are negative.
+ */
 export const calculateTravel = (input: TravelInput): number => {
   if (input.milesDriven < 0 || input.carMpg <= 0 || input.flightsTaken < 0 || input.publicTransitMiles < 0) {
     throw new Error("Invalid travel input values");
@@ -32,6 +38,12 @@ export const calculateTravel = (input: TravelInput): number => {
   return drivingEmissions + flightEmissions + transitEmissions;
 };
 
+/**
+ * Calculates electricity-related carbon emissions accounting for renewable energy offsets.
+ * @param {ElectricityInput} input - User's electricity usage.
+ * @returns {number} Total electricity CO2e in kg.
+ * @throws {Error} If input values are negative or renewable percentage > 100.
+ */
 export const calculateElectricity = (input: ElectricityInput): number => {
   if (input.kwhUsed < 0 || input.percentageRenewable < 0 || input.percentageRenewable > 100) {
     throw new Error("Invalid electricity input values");
@@ -41,13 +53,17 @@ export const calculateElectricity = (input: ElectricityInput): number => {
   return input.kwhUsed * nonRenewableFraction * FACTORS.ELECTRICITY_PER_KWH;
 };
 
+/**
+ * Calculates food-related carbon emissions based on dietary habits.
+ * @param {FoodInput} input - User's weekly meal habits.
+ * @returns {number} Total weekly food CO2e in kg.
+ * @throws {Error} If input values are negative.
+ */
 export const calculateFood = (input: FoodInput): number => {
   if (input.beefMealsPerWeek < 0 || input.chickenMealsPerWeek < 0 || input.veganMealsPerWeek < 0) {
     throw new Error("Invalid food input values");
   }
 
-  // Multiply by 52 for annual, but let's assume the calculation is for a weekly footprint baseline 
-  // or maybe it's just the exact footprint for a week. We'll stick to weekly footprint scale.
   return (
     input.beefMealsPerWeek * FACTORS.BEEF_MEAL +
     input.chickenMealsPerWeek * FACTORS.CHICKEN_MEAL +
@@ -55,6 +71,12 @@ export const calculateFood = (input: FoodInput): number => {
   );
 };
 
+/**
+ * Calculates shopping-related carbon emissions from clothing and electronics.
+ * @param {ShoppingInput} input - User's shopping habits.
+ * @returns {number} Total shopping CO2e in kg.
+ * @throws {Error} If input values are negative.
+ */
 export const calculateShopping = (input: ShoppingInput): number => {
   if (input.newClothesBought < 0 || input.electronicsBought < 0) {
     throw new Error("Invalid shopping input values");
@@ -66,6 +88,11 @@ export const calculateShopping = (input: ShoppingInput): number => {
   );
 };
 
+/**
+ * Calculates the total consolidated carbon footprint and provides a category breakdown.
+ * @param {CarbonInput} input - The consolidated user footprint inputs.
+ * @returns {CarbonOutput} An object containing total emissions and categorical breakdown.
+ */
 export const calculateTotalFootprint = (input: CarbonInput): CarbonOutput => {
   const travel = calculateTravel(input.travel);
   const electricity = calculateElectricity(input.electricity);
